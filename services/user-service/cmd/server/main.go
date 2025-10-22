@@ -38,7 +38,7 @@ func main() {
 	// Initialize layers
 	userRepo := repository.NewUserRepository(db)
 	userService := service.NewUserService(userRepo)
-	userhandler := handler.NewUserHandler(userService)
+	userhandler := handler.NewUserHandler(userService, cfg.JWTSecret)
 	
 	// Setup Gin
 
@@ -49,6 +49,7 @@ func main() {
 	api := r.Group("/api/v1")
 	{
 		api.POST("/register", userhandler.Register)
+		api.POST("/login",userhandler.Login)
 	}
 	// Start server
 	log.Printf("✅ User Service running on port %s", cfg.ServerPort)

@@ -9,10 +9,14 @@ import (
 
 type UserHandler struct {
 	service service.UserService
+	jwtSecret string
 }
 
-func NewUserHandler(service service.UserService) *UserHandler{
-	return &UserHandler{service: service}
+func NewUserHandler(service service.UserService,jwtSecret string) *UserHandler{
+	return &UserHandler{
+		service: service,
+		jwtSecret: jwtSecret,
+	}
 }
 
 type RegisterRequest struct {
@@ -20,6 +24,11 @@ type RegisterRequest struct {
 	Password  string `json:"password" binding:"required,min=6"`
 	FirstName string `json:"first_name" binding:"required"`
 	LastName  string `json:"last_name" binding:"required"`
+}
+
+type LoginRequest struct{
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
 }
 
 func (h *UserHandler) Register(c *gin.Context) {
@@ -36,5 +45,23 @@ func (h *UserHandler) Register(c *gin.Context) {
 	c.JSON(http.StatusCreated,gin.H{
 		"message" :"User registered sunccessful",
 		"user" : user,
+	})
+}
+
+func (h *UserHandler) Login (c *gin.Context){
+	var req LoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil{
+		c.JSON(http.StatusBadRequest, gin.H{"error":err.Error()})
+		return
+	}
+	token,user, err := h.service.Login(req.Email,req.Password,h.jwtSecret)
+	if err != nil {
+		c.JSON(http.StatusBadRequest ,gin.H{"error":err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK , gin.H{
+		"message":"Login successful",
+		"token":   token,
+		"user":    user,
 	})
 }
