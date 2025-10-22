@@ -65,3 +65,17 @@ func (h *UserHandler) Login (c *gin.Context){
 		"user":    user,
 	})
 }
+
+func (h *UserHandler) GetProfile(c *gin.Context){
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error":"Unauthorized"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Profile retrieved successfully",
+		"user_id": userID,
+		"email":   c.GetString("email"),
+		"role":    c.GetString("role"),
+	})
+}

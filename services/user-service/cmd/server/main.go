@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ploezy/ecommerce-platform/user-service/config"
 	"github.com/ploezy/ecommerce-platform/user-service/internal/handler"
+	"github.com/ploezy/ecommerce-platform/user-service/internal/middleware"
 	"github.com/ploezy/ecommerce-platform/user-service/internal/model"
 	"github.com/ploezy/ecommerce-platform/user-service/internal/repository"
 	"github.com/ploezy/ecommerce-platform/user-service/internal/service"
@@ -50,6 +51,13 @@ func main() {
 	{
 		api.POST("/register", userhandler.Register)
 		api.POST("/login",userhandler.Login)
+	}
+
+	// Protected Routes
+	protected := r.Group("/api/v1")
+	protected.Use(middleware.AuthMiddleware(cfg.JWTSecret))
+	{
+		protected.GET("/profile",userhandler.GetProfile)
 	}
 	// Start server
 	log.Printf("✅ User Service running on port %s", cfg.ServerPort)
