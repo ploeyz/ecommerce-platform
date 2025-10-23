@@ -4,9 +4,11 @@ import (
 	"context"
 	"log"
 
+	"github.com/lib/pq"
 	"github.com/ploezy/ecommerce-platform/product-service/config"
 	"github.com/ploezy/ecommerce-platform/product-service/internal/model"
 	"github.com/ploezy/ecommerce-platform/product-service/internal/repository"
+	"github.com/ploezy/ecommerce-platform/product-service/internal/service"
 	"github.com/ploezy/ecommerce-platform/product-service/pkg/database"
 	"github.com/ploezy/ecommerce-platform/product-service/pkg/redis"
 	"gorm.io/gorm"
@@ -52,9 +54,131 @@ func main() {
 		log.Fatalf("Failed to connect to Redis: %v", err)
 	}
 	log.Println("Redis connection:", redisClient != nil)
-	testRepository(db)
+	//testRepository(db)
+	testService(db)
 	log.Println("All connections successful!")
 }
+
+func testService(db *gorm.DB) {
+	ctx := context.Background()
+
+	// Create repository and service
+	repo := repository.NewProductRepository(db)
+	svc := service.NewProductService(repo)
+
+	// Test 1: Create Product
+	log.Println("Test 1: Create Product via Service")
+	createReq := &model.CreateProductRequest{
+		Name:        "Samsung Galaxy S24 Ultra",
+		Description: "Latest flagship smartphone from Samsung",
+		Price:       44900.00,
+		Stock:       75,
+		Category:    "Electronics",
+		Images:      pq.StringArray{"s24-1.jpg", "s24-2.jpg"},
+	}
+
+	product, err := svc.CreateProduct(ctx, createReq)
+	if err != nil {
+		log.Fatalf("Failed to create product: %v", err)
+	}
+	log.Printf("Product created: ID=%d, Name=%s, Price=%.2f THB", product.ID, product.Name, product.Price)
+
+	// Test 2: Get Product by ID
+	log.Println("Test 2: Get Product by ID")
+	foundProduct, err := svc.GetProductByID(ctx, product.ID)
+	if err != nil {
+		log.Fatalf("Failed to get product: %v", err)
+	}
+	log.Printf("Product found: %s (Stock: %d)", foundProduct.Name, foundProduct.Stock)
+
+	// Test 3: Create more products
+	log.Println("Test 3: Create more products")
+	products := []model.CreateProductRequest{
+		{
+			Name:        "Sony WH-1000XM5",
+			Description: "Premium noise-canceling headphones",
+			Price:       13900.00,
+			Stock:       40,
+			Category:    "Electronics",
+			Images:      pq.StringArray{"sony-1.jpg"},
+		},
+		{
+			Name:        "iPad Pro 12.9",
+			Description: "Powerful tablet with M2 chip",
+			Price:       45900.00,
+			Stock:       25,
+			Category:    "Electronics",
+			Images:      pq.StringArray{"ipad-1.jpg", "ipad-2.jpg"},
+		},
+	}
+
+	for _, req := range products {
+		r := req
+		p, err := svc.CreateProduct(ctx, &r)
+		if err != nil {
+			log.Printf("Failed to create product: %v", err)
+		} else {
+			log.Printf("Created: %s (%.2f THB)", p.Name, p.Price)
+		}
+	}
+
+	// Test 4: Get All Products with Pagination
+	log.Println("Test 4: Get All Products (Page 1, Limit 2)")
+	allProducts, err := svc.GetAllProducts(ctx, 1, 2)
+	if err != nil {
+		log.Fatalf("Failed to get all products: %v", err)
+	}
+	log.Printf("Total: %d, Page: %d/%d, Showing: %d products",
+		allProducts.Total, allProducts.Page, allProducts.TotalPages, allProducts.Limit)
+
+	if products, ok := allProducts.Data.([]model.ProductResponse); ok {
+		for _, p := range products {
+			log.Printf("   - %s: %.2f THB", p.Name, p.Price)
+		}
+	}
+
+	// Test 5: Search Products
+	log.Println("Test 5: Search Products (keyword: 'Pro')")
+	searchResults, err := svc.SearchProducts(ctx, "Pro", 1, 10)
+	if err != nil {
+		log.Fatalf("Failed to search products: %v", err)
+	}
+	log.Printf("Found %d products", searchResults.Total)
+
+	if products, ok := searchResults.Data.([]model.ProductResponse); ok {
+		for _, p := range products {
+			log.Printf("   - %s: %.2f THB", p.Name, p.Price)
+		}
+	}
+
+	// Test 6: Update Product
+	log.Println("Test 6: Update Product")
+	updateReq := &model.UpdateProductRequest{
+		Price: 42900.00,
+		Stock: 80,
+	}
+
+	updatedProduct, err := svc.UpdateProduct(ctx, product.ID, updateReq)
+	if err != nil {
+		log.Fatalf("Failed to update product: %v", err)
+	}
+	log.Printf("Product updated: %s - New Price: %.2f THB, New Stock: %d",
+		updatedProduct.Name, updatedProduct.Price, updatedProduct.Stock)
+
+	// Test 7: Delete Product
+	log.Println("Test 7: Delete Product")
+	if err := svc.DeleteProduct(ctx, product.ID); err != nil {
+		log.Fatalf("Failed to delete product: %v", err)
+	}
+	log.Printf("Product deleted successfully")
+
+	// Verify deletion
+	_, err = svc.GetProductByID(ctx, product.ID)
+	if err != nil {
+		log.Printf("Confirmed: %v", err)
+	}
+}
+
 func testRepository(db *gorm.DB) {
 	ctx := context.Background()
 	repo := repository.NewProductRepository(db)
