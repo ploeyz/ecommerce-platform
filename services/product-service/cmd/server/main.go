@@ -7,9 +7,11 @@ import (
 	"github.com/lib/pq"
 	"github.com/ploezy/ecommerce-platform/product-service/config"
 	"github.com/ploezy/ecommerce-platform/product-service/internal/handler"
+	"github.com/ploezy/ecommerce-platform/product-service/internal/middleware"
 	"github.com/ploezy/ecommerce-platform/product-service/internal/model"
 	"github.com/ploezy/ecommerce-platform/product-service/internal/repository"
 	"github.com/ploezy/ecommerce-platform/product-service/internal/service"
+	"github.com/ploezy/ecommerce-platform/product-service/pkg/auth"
 	"github.com/ploezy/ecommerce-platform/product-service/pkg/database"
 	"github.com/ploezy/ecommerce-platform/product-service/pkg/redis"
 	"gorm.io/gorm"
@@ -57,6 +59,12 @@ func main() {
 	//testRepository(db)
 	//testService(db)
 
+	// Initialize JWT helper
+	jwtHelper := auth.NewJWTHelper(cfg.JWT.Secret)
+
+	// Initialize middleware
+	authMiddleware := middleware.NewAuthMiddleware(jwtHelper)
+	// Initialize cache service
 	cacheService := redis.NewCacheService(redisClient)
 
 	// Initialize router
@@ -65,12 +73,12 @@ func main() {
 	productHandler 	:= handler.NewProductHandler(productService)
 
 	// Setup router
-	router := handler.SetupRouter(productHandler)
+	router := handler.SetupRouter(productHandler,authMiddleware)
 
 	// Start server
 	serverAddr := ":" + cfg.Server.Port
-	log.Printf("🚀 Product Service is running on http://localhost%s\n", serverAddr)
-	log.Println("📖 API Documentation:")
+	log.Printf("Product Service is running on http://localhost%s\n", serverAddr)
+	log.Println("API Documentation:")
 	log.Println("   GET    /health")
 	log.Println("   GET    /api/v1/products")
 	log.Println("   GET    /api/v1/products/:id")
