@@ -4,20 +4,33 @@ import (
 	"context"
 	"errors"
 	"math"
+	"time"
+	"fmt"
+	"log"
 
 	"github.com/ploezy/ecommerce-platform/product-service/internal/model"
 	"github.com/ploezy/ecommerce-platform/product-service/internal/repository"
+	"github.com/ploezy/ecommerce-platform/product-service/pkg/redis"
 	"gorm.io/gorm"
 )
 
 type productService struct {
-	repo repository.ProductRepository
+	repo  repository.ProductRepository
+	cache *redis.CacheService
 }
 
 // NewProductService creates a new product service
-func NewProductService(repo repository.ProductRepository) ProductService {
-	return &productService{repo: repo}
+func NewProductService(repo repository.ProductRepository, cache *redis.CacheService) ProductService {
+	return &productService{
+		repo:  repo,
+		cache: cache,
+	}
 }
+
+const (
+	productCacheKeyPrefix = "product:"
+	productCacheTTL       = 10 * time.Minute
+)
 
 // CreateProduct creates a new product
 func (s *productService) CreateProduct(ctx context.Context, req *model.CreateProductRequest) (*model.ProductResponse, error) {
@@ -37,22 +50,45 @@ func (s *productService) CreateProduct(ctx context.Context, req *model.CreatePro
 	return s.toProductResponse(product), nil
 }
 
-// GetProductByID gets a product by ID
-func (s *productService) GetProductByID(ctx context.Context,id uint) (*model.ProductResponse, error){
+// GetProductByID gets a product by ID with caching
+func (s *productService) GetProductByID(ctx context.Context, id uint) (*model.ProductResponse, error) {
+	cacheKey := fmt.Sprintf("%s%d", productCacheKeyPrefix, id)
+
+	// Try to get from cache first
+	var cachedProduct model.ProductResponse
+	err := s.cache.Get(ctx, cacheKey, &cachedProduct)
+	if err == nil {
+		log.Printf("Cache HIT for product ID: %d", id)
+		return &cachedProduct, nil
+	}
+
+	log.Printf("Cache MISS for product ID: %d", id)
+
+	// If not in cache, get from database
 	product, err := s.repo.FindByID(ctx, id)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound){
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("product not found")
 		}
 		return nil, err
 	}
-	return s.toProductResponse(product),nil
+
+	response := s.toProductResponse(product)
+
+	// Store in cache
+	if err := s.cache.Set(ctx, cacheKey, response, productCacheTTL); err != nil {
+		log.Printf("Failed to cache product: %v", err)
+	} else {
+		log.Printf("Cached product ID: %d (TTL: %v)", id, productCacheTTL)
+	}
+
+	return response, nil
 }
 
 // GetAllProducts gets all products with pagination
-func (s *productService) GetAllProducts(ctx context.Context, page, limit int) (*model.PaginationResponse, error){
-	//Set default value
-	if page < 1{
+func (s *productService) GetAllProducts(ctx context.Context, page, limit int) (*model.PaginationResponse, error) {
+	// Set default values
+	if page < 1 {
 		page = 1
 	}
 	if limit < 1 {
@@ -118,6 +154,14 @@ func (s *productService) UpdateProduct(ctx context.Context, id uint, req *model.
 		return nil, err
 	}
 
+	// Clear cache after update
+	cacheKey := fmt.Sprintf("%s%d", productCacheKeyPrefix, id)
+	if err := s.cache.Delete(ctx, cacheKey); err != nil {
+		log.Printf("Failed to clear cache for product %d: %v", id, err)
+	} else {
+		log.Printf("Cache cleared for product ID: %d", id)
+	}
+
 	return s.toProductResponse(product), nil
 }
 
@@ -132,7 +176,19 @@ func (s *productService) DeleteProduct(ctx context.Context, id uint) error {
 		return err
 	}
 
-	return s.repo.Delete(ctx, id)
+	if err := s.repo.Delete(ctx, id); err != nil {
+		return err
+	}
+
+	// Clear cache after delete
+	cacheKey := fmt.Sprintf("%s%d", productCacheKeyPrefix, id)
+	if err := s.cache.Delete(ctx, cacheKey); err != nil {
+		log.Printf("Failed to clear cache for product %d: %v", id, err)
+	} else {
+		log.Printf("Cache cleared for product ID: %d", id)
+	}
+
+	return nil
 }
 
 // SearchProducts searches products by keyword

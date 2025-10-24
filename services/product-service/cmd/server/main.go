@@ -56,9 +56,12 @@ func main() {
 	log.Println("Redis connection:", redisClient != nil)
 	//testRepository(db)
 	//testService(db)
+
+	cacheService := redis.NewCacheService(redisClient)
+
 	// Initialize router
 	productRepo 	:= repository.NewProductRepository(db)
-	productService 	:= service.NewProductService(productRepo)
+	productService 	:= service.NewProductService(productRepo, cacheService)
 	productHandler 	:= handler.NewProductHandler(productService)
 
 	// Setup router
@@ -82,12 +85,12 @@ func main() {
 	log.Println("All connections successful!")
 }
 
-func testService(db *gorm.DB) {
+func testService(db *gorm.DB,  cache *redis.CacheService) {
 	ctx := context.Background()
 
 	// Create repository and service
 	repo := repository.NewProductRepository(db)
-	svc := service.NewProductService(repo)
+	svc := service.NewProductService(repo, cache)
 
 	// Test 1: Create Product
 	log.Println("Test 1: Create Product via Service")
