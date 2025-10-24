@@ -6,6 +6,7 @@ import (
 
 	"github.com/lib/pq"
 	"github.com/ploezy/ecommerce-platform/product-service/config"
+	"github.com/ploezy/ecommerce-platform/product-service/internal/handler"
 	"github.com/ploezy/ecommerce-platform/product-service/internal/model"
 	"github.com/ploezy/ecommerce-platform/product-service/internal/repository"
 	"github.com/ploezy/ecommerce-platform/product-service/internal/service"
@@ -42,7 +43,6 @@ func main() {
 		log.Fatalf("Failed to migrate database: %v",err)
 	}
 
-
 	// Connect to Redis
 	redisClient, err := redis.ConnectRedis(redis.RedisConfig{
 		Host:     cfg.Redis.Host,
@@ -55,7 +55,30 @@ func main() {
 	}
 	log.Println("Redis connection:", redisClient != nil)
 	//testRepository(db)
-	testService(db)
+	//testService(db)
+	// Initialize router
+	productRepo 	:= repository.NewProductRepository(db)
+	productService 	:= service.NewProductService(productRepo)
+	productHandler 	:= handler.NewProductHandler(productService)
+
+	// Setup router
+	router := handler.SetupRouter(productHandler)
+
+	// Start server
+	serverAddr := ":" + cfg.Server.Port
+	log.Printf("🚀 Product Service is running on http://localhost%s\n", serverAddr)
+	log.Println("📖 API Documentation:")
+	log.Println("   GET    /health")
+	log.Println("   GET    /api/v1/products")
+	log.Println("   GET    /api/v1/products/:id")
+	log.Println("   GET    /api/v1/products/search?keyword=xxx")
+	log.Println("   POST   /api/v1/products")
+	log.Println("   PUT    /api/v1/products/:id")
+	log.Println("   DELETE /api/v1/products/:id")
+
+	if err := router.Run(serverAddr); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
 	log.Println("All connections successful!")
 }
 
