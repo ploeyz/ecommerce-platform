@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/ploezy/ecommerce-platform/order-service/pkg/config"
 	"github.com/ploezy/ecommerce-platform/order-service/pkg/database"
+	"github.com/ploezy/ecommerce-platform/order-service/pkg/kafka"
 	"github.com/ploezy/ecommerce-platform/order-service/pkg/redis"
 )
 
@@ -27,18 +29,59 @@ func main() {
 	fmt.Println("========================================")
 
 	// Connect to database
-	fmt.Println("\nConnecting to database...")
+	fmt.Println("\n Connecting to database...")
 	err := database.ConnectDatabase(cfg)
 	if err != nil {
-		log.Fatalf("Database connection failed: %v", err)
+		log.Fatalf(" Database connection failed: %v", err)
 	}
 
 	// Connect to Redis
-	fmt.Println("Connecting to Redis...")
+	fmt.Println("\n Connecting to Redis...")
 	err = redis.ConnectRedis(cfg)
-	if err != nil{
-		log.Fatalf("Redis connection failed: %v",err)
+	if err != nil {
+		log.Fatalf(" Redis connection failed: %v", err)
 	}
 
-	fmt.Println("\nAll connections successful!")
+	// Initialize Kafka Producer
+	fmt.Println("\n Initializing Kafka producer...")
+	producer, err := kafka.NewProducer(cfg)
+	if err != nil {
+		log.Fatalf(" Kafka producer initialization failed: %v", err)
+	}
+	defer producer.Close()
+
+	fmt.Println("\n All connections successful!")
+
+	// Test Kafka by sending a test event
+	fmt.Println("\n Testing Kafka producer...")
+	testEvent := kafka.OrderCreatedEvent{
+		OrderID:     1,
+		UserID:      1,
+		TotalAmount: 1500.00,
+		Status:      "pending",
+		Items: []kafka.OrderItemEvent{
+			{
+				ProductID: 1,
+				Quantity:  2,
+				Price:     500.00,
+				Subtotal:  1000.00,
+			},
+			{
+				ProductID: 2,
+				Quantity:  1,
+				Price:     500.00,
+				Subtotal:  500.00,
+			},
+		},
+		CreatedAt: time.Now(),
+	}
+
+	err = producer.PublishEvent(cfg.KafkaTopicOrderCreated, "order-1", testEvent)
+	if err != nil {
+		log.Printf(" Failed to publish test event: %v", err)
+	} else {
+		fmt.Println(" Test event published successfully!")
+	}
+
+	fmt.Println("\n Setup completed!")
 }
