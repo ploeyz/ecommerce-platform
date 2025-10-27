@@ -6,6 +6,7 @@ import (
 
 	"github.com/ploezy/ecommerce-platform/order-service/pkg/config"
 	"github.com/ploezy/ecommerce-platform/order-service/pkg/database"
+	"github.com/ploezy/ecommerce-platform/order-service/pkg/redis"
 )
 
 // Print config to verify
@@ -30,6 +31,13 @@ func main() {
 	err := database.ConnectDatabase(cfg)
 	if err != nil {
 		log.Fatalf("Database connection failed: %v", err)
+	}
+
+	// Connect to Redis
+	fmt.Println("Connecting to Redis...")
+	err = redis.ConnectRedis(cfg)
+	if err != nil{
+		log.Fatalf("Redis connection failed: %v",err)
 	}
 
 	fmt.Println("\nAll connections successful!")
