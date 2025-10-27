@@ -35,6 +35,13 @@ func main() {
 		log.Fatalf(" Database connection failed: %v", err)
 	}
 
+	// Run migrations
+	fmt.Println()
+	err = database.AutoMigrate()
+	if err != nil{
+		log.Fatalf("Database migration failed: %v",err)
+	}
+
 	// Connect to Redis
 	fmt.Println("\n Connecting to Redis...")
 	err = redis.ConnectRedis(cfg)
