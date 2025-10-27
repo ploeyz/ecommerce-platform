@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/ploezy/ecommerce-platform/order-service/pkg/config"
+	"github.com/ploezy/ecommerce-platform/order-service/pkg/database"
 )
 
 // Print config to verify
@@ -22,4 +24,13 @@ func main() {
 	fmt.Printf("User Service gRPC: %s\n", cfg.UserServiceGRPCURL)
 	fmt.Printf("Product Service gRPC: %s\n", cfg.ProductServiceGRPCURL)
 	fmt.Println("========================================")
+
+	// Connect to database
+	fmt.Println("\nConnecting to database...")
+	err := database.ConnectDatabase(cfg)
+	if err != nil {
+		log.Fatalf("Database connection failed: %v", err)
+	}
+
+	fmt.Println("\nAll connections successful!")
 }
