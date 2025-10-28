@@ -3,7 +3,7 @@ package grpc
 import (
 	"context"
 
-	pb "github.com/ploezy/ecommerce-platform/proto/user"
+	pb "github.com/ploezy/ecommerce-platform/user-service/proto/user"
 	"github.com/ploezy/ecommerce-platform/user-service/internal/service"
 	"github.com/ploezy/ecommerce-platform/user-service/pkg/auth"
 	"google.golang.org/grpc/codes"

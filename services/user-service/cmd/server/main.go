@@ -5,7 +5,7 @@ import (
 	"net"
 
 	"github.com/gin-gonic/gin"
-	pb "github.com/ploezy/ecommerce-platform/proto/user"
+	pb "github.com/ploezy/ecommerce-platform/user-service/proto/user"
 	usergrpc "github.com/ploezy/ecommerce-platform/user-service/internal/grpc"
 	"github.com/ploezy/ecommerce-platform/user-service/config"
 	"github.com/ploezy/ecommerce-platform/user-service/internal/handler"
