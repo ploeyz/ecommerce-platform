@@ -2,8 +2,11 @@ package main
 
 import (
 	"log"
+	"net"
 
 	"github.com/gin-gonic/gin"
+	pb "github.com/ploezy/ecommerce-platform/proto/user"
+	usergrpc "github.com/ploezy/ecommerce-platform/user-service/internal/grpc"
 	"github.com/ploezy/ecommerce-platform/user-service/config"
 	"github.com/ploezy/ecommerce-platform/user-service/internal/handler"
 	"github.com/ploezy/ecommerce-platform/user-service/internal/middleware"
@@ -11,6 +14,7 @@ import (
 	"github.com/ploezy/ecommerce-platform/user-service/internal/repository"
 	"github.com/ploezy/ecommerce-platform/user-service/internal/service"
 	"github.com/ploezy/ecommerce-platform/user-service/pkg/database"
+	"google.golang.org/grpc"
 )
 
 func main() {
@@ -39,29 +43,47 @@ func main() {
 	// Initialize layers
 	userRepo := repository.NewUserRepository(db)
 	userService := service.NewUserService(userRepo)
-	userhandler := handler.NewUserHandler(userService, cfg.JWTSecret)
+	userHandler := handler.NewUserHandler(userService, cfg.JWTSecret)
 	
-	// Setup Gin
+	// Start gRPC Server in goroutine
+	go startGRPCServer(userService, cfg.JWTSecret)
 
+	// Start REST API Server
+	startRESTServer(userHandler, cfg)
+}
+func startGRPCServer(userService service.UserService, jwtSecret string) {
+	lis, err := net.Listen("tcp", ":50051")
+	if err != nil {
+		log.Fatalf("Failed to listen gRPC: %v", err)
+	}
+
+	grpcServer := grpc.NewServer()
+	pb.RegisterUserServiceServer(grpcServer, usergrpc.NewUserGRPCServer(userService, jwtSecret))
+
+	log.Println("gRPC Server running on port 50051")
+	if err := grpcServer.Serve(lis); err != nil {
+		log.Fatalf("Failed to serve gRPC: %v", err)
+	}
+}
+func startRESTServer(userHandler *handler.UserHandler, cfg *config.Config) {
 	r := gin.Default()
 
-	// Routes
-
+	// Public Routes
 	api := r.Group("/api/v1")
 	{
-		api.POST("/register", userhandler.Register)
-		api.POST("/login",userhandler.Login)
+		api.POST("/register", userHandler.Register)
+		api.POST("/login", userHandler.Login)
 	}
 
 	// Protected Routes
 	protected := r.Group("/api/v1")
 	protected.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 	{
-		protected.GET("/profile",userhandler.GetProfile)
+		protected.GET("/profile", userHandler.GetProfile)
 	}
-	// Start server
-	log.Printf("✅ User Service running on port %s", cfg.ServerPort)
+
+	log.Printf("REST API Server running on port %s", cfg.ServerPort)
 	if err := r.Run(":" + cfg.ServerPort); err != nil {
-		log.Fatal("Failed to start server:", err)
+		log.Fatal("Failed to start REST server:", err)
 	}
 }
