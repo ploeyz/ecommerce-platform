@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/ploezy/ecommerce-platform/order-service/pkg/config"
+	"github.com/ploezy/ecommerce-platform/order-service/config"
 	"github.com/ploezy/ecommerce-platform/order-service/pkg/database"
 	"github.com/ploezy/ecommerce-platform/order-service/pkg/kafka"
 	"github.com/ploezy/ecommerce-platform/order-service/pkg/redis"
@@ -41,14 +41,14 @@ func main() {
 	if err != nil{
 		log.Fatalf("Database migration failed: %v",err)
 	}
-
+	
 	// Connect to Redis
 	fmt.Println("\n Connecting to Redis...")
 	err = redis.ConnectRedis(cfg)
 	if err != nil {
 		log.Fatalf(" Redis connection failed: %v", err)
 	}
-
+	
 	// Initialize Kafka Producer
 	fmt.Println("\n Initializing Kafka producer...")
 	producer, err := kafka.NewProducer(cfg)
