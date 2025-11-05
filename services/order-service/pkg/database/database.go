@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/ploezy/ecommerce-platform/order-service/pkg/config"
+	"github.com/ploezy/ecommerce-platform/order-service/config/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

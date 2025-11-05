@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ploezy/ecommerce-platform/order-service/pkg/config"
+	"github.com/ploezy/ecommerce-platform/order-service/config/config"
 	"github.com/segmentio/kafka-go"
 )
 

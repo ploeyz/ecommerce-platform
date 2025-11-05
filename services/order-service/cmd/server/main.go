@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 	"time"
-
-	"github.com/ploezy/ecommerce-platform/order-service/pkg/config"
+	
+	"github.com/ploezy/ecommerce-platform/order-service/config/config"
 	"github.com/ploezy/ecommerce-platform/order-service/pkg/database"
 	"github.com/ploezy/ecommerce-platform/order-service/pkg/kafka"
 	"github.com/ploezy/ecommerce-platform/order-service/pkg/redis"
