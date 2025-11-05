@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/ploezy/ecommerce-platform/order-service/config/config"
+	"github.com/ploezy/ecommerce-platform/order-service/config"
 )
 
 var Client *redis.Client
