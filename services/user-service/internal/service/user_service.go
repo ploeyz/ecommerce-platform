@@ -11,18 +11,20 @@ import (
 
 type UserService interface {
 	Register(email, password, firstName, lastName string) (*model.User, error)
-	Login(email,password,jwtSecret string)(string,*model.User,error)
+	Login(email, password, jwtSecret string) (string, *model.User, error)
+	GetByID(id uint) (*model.User, error)
+	GetByEmail(email string) (*model.User, error)
 }
 
 type userService struct {
 	repo repository.UserRepository
 }
 
-func NewUserService(repo repository.UserRepository) UserService{
+func NewUserService(repo repository.UserRepository) UserService {
 	return &userService{repo: repo}
 }
 
-func (s *userService) Register(email,password,firstName,lastName string) (*model.User,error){
+func (s *userService) Register(email, password, firstName, lastName string) (*model.User, error) {
 	// Check if user already exists
 	existingUser, _ := s.repo.FindByEmail(email)
 	if existingUser != nil {
@@ -46,29 +48,36 @@ func (s *userService) Register(email,password,firstName,lastName string) (*model
 
 	err = s.repo.Create(user)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	return user, nil
 }
 
-func (s *userService) Login(email,password,jwtSecret string)(string,*model.User,error){
+func (s *userService) Login(email, password, jwtSecret string) (string, *model.User, error) {
 	// Find user
 	user, err := s.repo.FindByEmail(email)
-	if err != nil{
+	if err != nil {
 		return "", nil, errors.New("invalid email or password")
 	}
 	// check password
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password),[]byte(password))
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
 		return "", nil, errors.New("invalid email or password")
 	}
 
 	// Generate JWT token
-	token, err := auth.GenerateToken(user.ID,user.Email,user.Role,jwtSecret)
+	token, err := auth.GenerateToken(user.ID, user.Email, user.Role, jwtSecret)
 	if err != nil {
 		return "", nil, err
 	}
 
 	return token, user, nil
 
+}
+func (s *userService) GetByID(id uint) (*model.User, error) {
+	return s.repo.FindbyId(id)
+}
+
+func (s *userService) GetByEmail(email string) (*model.User, error) {
+	return s.repo.FindByEmail(email)
 }
