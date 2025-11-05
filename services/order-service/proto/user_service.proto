@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "order-service/proto/user";
+
+// UserService defines the gRPC service for user operations
+service UserService {
+  // GetUser retrieves user information by user ID
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  
+  // ValidateToken validates a JWT token and returns user info
+  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
+}
+
+// GetUserRequest is the request message for GetUser
+message GetUserRequest {
+  uint32 user_id = 1;
+}
+
+// GetUserResponse is the response message for GetUser
+message GetUserResponse {
+  uint32 id = 1;
+  string email = 2;
+  string name = 3;
+  string created_at = 4;
+}
+
+// ValidateTokenRequest is the request message for ValidateToken
+message ValidateTokenRequest {
+  string token = 1;
+}
+
+// ValidateTokenResponse is the response message for ValidateToken
+message ValidateTokenResponse {
+  bool valid = 1;
+  uint32 user_id = 2;
+  string email = 3;
+  string message = 4;
+}

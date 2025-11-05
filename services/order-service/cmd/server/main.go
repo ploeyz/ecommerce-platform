@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/ploezy/ecommerce-platform/order-service/config"
+	"github.com/ploezy/ecommerce-platform/order-service/internal/grpc/client"
 	"github.com/ploezy/ecommerce-platform/order-service/pkg/database"
 	"github.com/ploezy/ecommerce-platform/order-service/pkg/kafka"
 	"github.com/ploezy/ecommerce-platform/order-service/pkg/redis"
@@ -58,6 +59,18 @@ func main() {
 	defer producer.Close()
 
 	fmt.Println("\n All connections successful!")
+
+	fmt.Println("\n⏳ Connecting to User Service gRPC...")
+	userClient, err := client.NewUserClient(cfg.UserServiceGRPCURL)
+	if err != nil {
+		log.Printf("⚠️ User Service gRPC connection failed: %v", err)
+		log.Println("⚠️ User Service gRPC server may not be running yet")
+	} else {
+		defer userClient.Close()
+	}
+	
+
+
 
 	// Test Kafka by sending a test event
 	fmt.Println("\n Testing Kafka producer...")
