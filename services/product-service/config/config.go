@@ -15,7 +15,8 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Port string
+	Port     string
+	GRPCPort string
 }
 
 type DatabaseConfig struct {
@@ -25,6 +26,7 @@ type DatabaseConfig struct {
 	Password string
 	DBName   string
 }
+
 type RedisConfig struct {
 	Host     string
 	Port     string
@@ -44,7 +46,8 @@ func LoadConfig() (*Config, error) {
 
 	config := &Config{
 		Server: ServerConfig{
-			Port: getEnv("SERVER_PORT", "8082"),
+			Port:     getEnv("SERVER_PORT", "8082"),
+			GRPCPort: getEnv("GRPC_PORT", "9092"),
 		},
 		Database: DatabaseConfig{
 			Host:     getEnv("DB_HOST", "localhost"),
@@ -63,12 +66,13 @@ func LoadConfig() (*Config, error) {
 			Secret: getEnv("JWT_SECRET", "your-secret-key"),
 		},
 	}
-	return config,nil
+
+	return config, nil
 }
 
-func getEnv(key, defaultValue string) string{
-		if value := os.Getenv(key); value != ""{
-			return value
-		}
-		return defaultValue
+func getEnv(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
 	}
+	return defaultValue
+}
