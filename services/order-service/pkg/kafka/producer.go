@@ -7,10 +7,10 @@ import (
 	"log"
 	"strings"
 	"time"
-
-	"github.com/ploezy/ecommerce-platform/order-service/pkg/config"
 	"github.com/segmentio/kafka-go"
+	"github.com/ploezy/ecommerce-platform/order-service/config"
 )
+
 
 type Producer struct {
 	writer *kafka.Writer
@@ -22,7 +22,7 @@ var producer *Producer
 func NewProducer(cfg *config.Config) (*Producer, error) {
 	// Parse Kafka brokers
 	brokers := strings.Split(cfg.KafkaBrokers, ",")
-
+	
 	// Create Kafka writer
 	writer := &kafka.Writer{
 		Addr:         kafka.TCP(brokers...),
