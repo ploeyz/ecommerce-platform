@@ -60,16 +60,24 @@ func main() {
 
 	fmt.Println("\n All connections successful!")
 
-	fmt.Println("\n⏳ Connecting to User Service gRPC...")
+	fmt.Println("Connecting to User Service gRPC...")
 	userClient, err := client.NewUserClient(cfg.UserServiceGRPCURL)
 	if err != nil {
-		log.Printf("⚠️ User Service gRPC connection failed: %v", err)
-		log.Println("⚠️ User Service gRPC server may not be running yet")
+		log.Printf("User Service gRPC connection failed: %v", err)
+		log.Println("User Service gRPC server may not be running yet")
 	} else {
 		defer userClient.Close()
 	}
 	
-
+	// Initialize Product Service gRPC Client
+	fmt.Println("Connecting to Product Service gRPC...")
+	productClient, err := client.NewProductClient(cfg.ProductServiceGRPCURL)
+	if err != nil {
+		log.Printf("Product Service gRPC connection failed: %v", err)
+		log.Println("Product Service gRPC server may not be running yet")
+	} else {
+		defer productClient.Close()
+	}
 
 
 	// Test Kafka by sending a test event
