@@ -46,13 +46,13 @@ func main() {
 	userHandler := handler.NewUserHandler(userService, cfg.JWTSecret)
 	
 	// Start gRPC Server in goroutine
-	go startGRPCServer(userService, cfg.JWTSecret)
+	go startGRPCServer(userService, cfg.JWTSecret, cfg.GRPCPort)
 
 	// Start REST API Server
 	startRESTServer(userHandler, cfg)
 }
-func startGRPCServer(userService service.UserService, jwtSecret string) {
-	lis, err := net.Listen("tcp", ":50051")
+func startGRPCServer(userService service.UserService, jwtSecret string, grpcPort string) {
+	lis, err := net.Listen("tcp", ":"+grpcPort)
 	if err != nil {
 		log.Fatalf("Failed to listen gRPC: %v", err)
 	}
@@ -60,7 +60,7 @@ func startGRPCServer(userService service.UserService, jwtSecret string) {
 	grpcServer := grpc.NewServer()
 	pb.RegisterUserServiceServer(grpcServer, usergrpc.NewUserGRPCServer(userService, jwtSecret))
 
-	log.Println("gRPC Server running on port 50051")
+	log.Printf("gRPC Server running on port %s", grpcPort) 
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("Failed to serve gRPC: %v", err)
 	}

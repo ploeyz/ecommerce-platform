@@ -14,6 +14,7 @@ type Config struct {
 	DBPassword string
 	DBName     string
 	ServerPort string
+	GRPCPort   string
 	JWTSecret  string
 }
 
@@ -29,6 +30,7 @@ func LoadConfig() *Config {
 		DBPassword: getEnv("DB_PASSWORD", "ecom_pass"),
 		DBName:     getEnv("DB_NAME", "ecom_db"),
 		ServerPort: getEnv("SERVER_PORT", "8081"),
+		GRPCPort:   getEnv("GRPC_PORT", "50051"),
 		JWTSecret:  getEnv("JWT_SECRET", "secret"),
 	}
 }
