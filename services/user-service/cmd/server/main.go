@@ -15,7 +15,25 @@ import (
 	"github.com/ploezy/ecommerce-platform/user-service/internal/service"
 	"github.com/ploezy/ecommerce-platform/user-service/pkg/database"
 	"google.golang.org/grpc"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	_ "github.com/ploezy/ecommerce-platform/user-service/docs" // Swagger docs
 )
+
+// @title User Service API
+// @version 1.0
+// @description E-Commerce User Service API with JWT Authentication
+
+
+
+// @host localhost:8081
+// @BasePath /api/v1
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
+
 
 func main() {
 	// Load config
@@ -67,7 +85,15 @@ func startGRPCServer(userService service.UserService, jwtSecret string, grpcPort
 }
 func startRESTServer(userHandler *handler.UserHandler, cfg *config.Config) {
 	r := gin.Default()
-
+	// Swagger route
+	
+	// Swagger documentation with custom config
+	url := ginSwagger.URL("http://localhost:8081/swagger/doc.json")
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(
+		swaggerFiles.Handler,
+		url,
+		ginSwagger.DefaultModelsExpandDepth(-1), // ซ่อน Models section
+	))
 	// Public Routes
 	api := r.Group("/api/v1")
 	{
