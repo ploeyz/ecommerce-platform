@@ -1,6 +1,8 @@
 package handler
 
 import (
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/gin-gonic/gin"
 	"github.com/ploezy/ecommerce-platform/product-service/internal/middleware"
 )
@@ -8,6 +10,14 @@ import (
 func SetupRouter(productHandler *ProductHandler, authMiddleware *middleware.AuthMiddleware) *gin.Engine{
 	router := gin.Default()
 
+	// Swagger documentation with custom config
+	url := ginSwagger.URL("http://localhost:8082/swagger/doc.json")
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(
+		swaggerFiles.Handler,
+		url,
+		ginSwagger.DefaultModelsExpandDepth(-1), // ซ่อน Models section
+	))
+	
 	// Health check
 	router.GET("/health", func(c *gin.Context){
 		c.JSON(200, gin.H{

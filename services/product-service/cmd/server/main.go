@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	_ "github.com/ploezy/ecommerce-platform/product-service/docs"
 	"github.com/ploezy/ecommerce-platform/product-service/config"
 	grpcHandler "github.com/ploezy/ecommerce-platform/product-service/internal/grpc/handler"
 	grpcServer "github.com/ploezy/ecommerce-platform/product-service/internal/grpc/server"
@@ -16,6 +17,16 @@ import (
 	"github.com/ploezy/ecommerce-platform/product-service/pkg/redis"
 	"syscall"
 )
+// @title Product Service API
+// @version 1.0
+// @description This is a Product Service API for E-Commerce Platform
+
+// @BasePath /api/v1
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
 
 func main() {
 	// Load configuration

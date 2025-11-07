@@ -4,3 +4,6 @@ go get -u gorm.io/driver/postgres
 go get -u github.com/joho/godotenv
 go get -u github.com/golang-jwt/jwt/v5
 go get -u github.com/redis/go-redis/v9
+go get -u github.com/swaggo/swag/cmd/swag
+go get -u github.com/swaggo/gin-swagger
+go get -u github.com/swaggo/files

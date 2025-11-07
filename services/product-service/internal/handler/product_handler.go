@@ -17,7 +17,20 @@ type ProductHandler struct {
 func NewProductHandler(service service.ProductService) *ProductHandler {
 	return &ProductHandler{service: service}
 }
-
+// CreateProduct godoc
+// @Summary Create a new product
+// @Description Create a new product (Admin only)
+// @Tags Products
+// @Accept json
+// @Produce json
+// @Param product body model.CreateProductRequest true "Product Data"
+// @Success 201 {object} Response{data=model.ProductResponse}
+// @Failure 400 {object} Response
+// @Failure 401 {object} Response
+// @Failure 403 {object} Response
+// @Failure 500 {object} Response
+// @Security BearerAuth
+// @Router /products [post]
 // CreateProduct handler POST /api/v1/products
 func (h * ProductHandler) CreateProduct(c *gin.Context){
 	var req model.CreateProductRequest
@@ -35,7 +48,18 @@ func (h * ProductHandler) CreateProduct(c *gin.Context){
 	SuccessResponse(c, http.StatusCreated,"Product created successfully",product)
 }
 
-// GetProductByID handles GET /api/v1/product/:id
+// GetProductByID godoc
+// @Summary Get product by ID
+// @Description Get a single product by ID (with Redis cache)
+// @Tags Products
+// @Accept json
+// @Produce json
+// @Param id path int true "Product ID"
+// @Success 200 {object} Response{data=model.ProductResponse}
+// @Failure 400 {object} Response
+// @Failure 404 {object} Response
+// @Failure 500 {object} Response
+// @Router /products/{id} [get]
 func (h * ProductHandler) GetProductByID(c *gin.Context){
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr,10,32)
@@ -56,7 +80,17 @@ func (h * ProductHandler) GetProductByID(c *gin.Context){
 
 	SuccessResponse(c, http.StatusOK,"Product retrieved successfully",product)
 }
-// GetAllProducts handles GET /api/v1/products
+// GetAllProducts godoc
+// @Summary Get all products
+// @Description Get all products with pagination
+// @Tags Products
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Items per page" default(10)
+// @Success 200 {object} Response{data=model.PaginationResponse}
+// @Failure 500 {object} Response
+// @Router /products [get]
 func (h *ProductHandler) GetAllProducts(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
@@ -70,7 +104,22 @@ func (h *ProductHandler) GetAllProducts(c *gin.Context) {
 	SuccessResponse(c, http.StatusOK, "Products retrieved successfully", products)
 }
 
-// UpdateProduct handles PUT /api/v1/products/:id
+// UpdateProduct godoc
+// @Summary Update product
+// @Description Update an existing product (Admin only)
+// @Tags Products
+// @Accept json
+// @Produce json
+// @Param id path int true "Product ID"
+// @Param product body model.UpdateProductRequest true "Product Data"
+// @Success 200 {object} Response{data=model.ProductResponse}
+// @Failure 400 {object} Response
+// @Failure 401 {object} Response
+// @Failure 403 {object} Response
+// @Failure 404 {object} Response
+// @Failure 500 {object} Response
+// @Security BearerAuth
+// @Router /products/{id} [put]
 func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -98,7 +147,21 @@ func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 	SuccessResponse(c, http.StatusOK, "Product updated successfully", product)
 }
 
-// DeleteProduct handles DELETE /api/v1/products/:id
+// DeleteProduct godoc
+// @Summary Delete product
+// @Description Delete a product (Admin only, soft delete)
+// @Tags Products
+// @Accept json
+// @Produce json
+// @Param id path int true "Product ID"
+// @Success 200 {object} Response
+// @Failure 400 {object} Response
+// @Failure 401 {object} Response
+// @Failure 403 {object} Response
+// @Failure 404 {object} Response
+// @Failure 500 {object} Response
+// @Security BearerAuth
+// @Router /products/{id} [delete]
 func (h *ProductHandler) DeleteProduct(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -119,7 +182,19 @@ func (h *ProductHandler) DeleteProduct(c *gin.Context) {
 	SuccessResponse(c, http.StatusOK, "Product deleted successfully", nil)
 }
 
-// SearchProducts handles GET /api/v1/products/search
+// SearchProducts godoc
+// @Summary Search products
+// @Description Search products by keyword in name or category
+// @Tags Products
+// @Accept json
+// @Produce json
+// @Param keyword query string true "Search keyword"
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Items per page" default(10)
+// @Success 200 {object} Response{data=model.PaginationResponse}
+// @Failure 400 {object} Response
+// @Failure 500 {object} Response
+// @Router /products/search [get]
 func (h *ProductHandler) SearchProducts(c *gin.Context) {
 	keyword := c.Query("keyword")
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
