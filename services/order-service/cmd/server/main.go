@@ -7,6 +7,9 @@ import (
 	"syscall"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	_ "github.com/ploezy/ecommerce-platform/order-service/docs" // Swagger docs
 	"github.com/ploezy/ecommerce-platform/order-service/config"
 	"github.com/ploezy/ecommerce-platform/order-service/internal/grpc/client"
 	"github.com/ploezy/ecommerce-platform/order-service/internal/handler"
@@ -16,7 +19,24 @@ import (
 	"github.com/ploezy/ecommerce-platform/order-service/pkg/kafka"
 	"github.com/ploezy/ecommerce-platform/order-service/pkg/redis"
 )
+// @title Order Service API
+// @version 1.0
+// @description Order Service for E-Commerce Microservices Platform
+// @termsOfService http://swagger.io/terms/
 
+// @contact.name API Support
+// @contact.email support@example.com
+
+// @license.name MIT
+// @license.url https://opensource.org/licenses/MIT
+
+// @host localhost:8083
+// @BasePath /api/v1
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
 func main() {
 	// Load configuration
 	cfg := config.LoadConfig()
@@ -89,6 +109,14 @@ func main() {
 	// Setup Gin router
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
+
+	// Swagger documentation with custom config
+	url := ginSwagger.URL("http://localhost:8083/swagger/doc.json")
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(
+		swaggerFiles.Handler,
+		url,
+		ginSwagger.DefaultModelsExpandDepth(-1), // ซ่อน Models section
+	))
 
 	// Health check endpoint
 	router.GET("/health", func(c *gin.Context) {

@@ -46,7 +46,20 @@ func contains(str, substr string) bool {
     return strings.Contains(str, substr)
 }
 
-// CreateOrder handles POST /api/v1/orders
+// CreateOrder godoc
+// @Summary Create a new order
+// @Description Create a new order with items
+// @Tags orders
+// @Accept json
+// @Produce json
+// @Param order body models.CreateOrderRequest true "Order data"
+// @Success 201 {object} map[string]interface{} "Order created successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 404 {object} map[string]interface{} "Product not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security BearerAuth
+// @Router /orders [post]
 func (h *OrderHandler) CreateOrder(c *gin.Context) {
     // ดึง user ID จาก JWT context
     userID, err := h.getUserIDFromContext(c)
@@ -75,7 +88,7 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
         return
     }
     
-    // Call service to create order
+
     order, err := h.service.CreateOrder(c.Request.Context(), userID, &req)
     if err != nil {
         // Check error type for appropriate status code
@@ -102,7 +115,19 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
     })
 }
 
-// GetOrders handles GET /api/v1/orders (with pagination)
+// GetOrders godoc
+// @Summary Get user orders
+// @Description Get all orders for the authenticated user with pagination
+// @Tags orders
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Items per page" default(10)
+// @Success 200 {object} map[string]interface{} "Orders retrieved successfully"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security BearerAuth
+// @Router /orders [get]
 func (h *OrderHandler) GetOrders(c *gin.Context) {
     // ดึง user ID จาก JWT context
     userID, err := h.getUserIDFromContext(c)
@@ -142,7 +167,21 @@ func (h *OrderHandler) GetOrders(c *gin.Context) {
     })
 }
 
-// GetOrderByID handles GET /api/v1/orders/:id
+// GetOrderByID godoc
+// @Summary Get order by ID
+// @Description Get a specific order by ID
+// @Tags orders
+// @Accept json
+// @Produce json
+// @Param id path int true "Order ID"
+// @Success 200 {object} map[string]interface{} "Order retrieved successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid order ID"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 403 {object} map[string]interface{} "Forbidden"
+// @Failure 404 {object} map[string]interface{} "Order not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security BearerAuth
+// @Router /orders/{id} [get]
 func (h *OrderHandler) GetOrderByID(c *gin.Context) {
     // ดึง user ID จาก JWT context
     userID, err := h.getUserIDFromContext(c)
@@ -188,7 +227,21 @@ func (h *OrderHandler) GetOrderByID(c *gin.Context) {
     })
 }
 
-// UpdateOrderStatus handles PUT /api/v1/orders/:id/status
+// UpdateOrderStatus godoc
+// @Summary Update order status
+// @Description Update the status of an order (Admin only)
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Param id path int true "Order ID"
+// @Param status body map[string]string true "New status"
+// @Success 200 {object} map[string]interface{} "Order status updated successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 404 {object} map[string]interface{} "Order not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security BearerAuth
+// @Router /admin/orders/{id}/status [put]
 func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) {
     // Parse order ID from URL parameter
     orderID, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -237,7 +290,21 @@ func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) {
     })
 }
 
-// CancelOrder handles POST /api/v1/orders/:id/cancel
+// CancelOrder godoc
+// @Summary Cancel an order
+// @Description Cancel a pending order and restore product stock
+// @Tags orders
+// @Accept json
+// @Produce json
+// @Param id path int true "Order ID"
+// @Success 200 {object} map[string]interface{} "Order cancelled successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 403 {object} map[string]interface{} "Forbidden"
+// @Failure 404 {object} map[string]interface{} "Order not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Security BearerAuth
+// @Router /orders/{id}/cancel [post]
 func (h *OrderHandler) CancelOrder(c *gin.Context) {
     // ดึง user ID จาก JWT context
     userID, err := h.getUserIDFromContext(c)

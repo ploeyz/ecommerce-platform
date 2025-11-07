@@ -7,7 +7,9 @@ go get -u github.com/joho/godotenv
 go get -u github.com/golang-jwt/jwt/v5
 go get -u google.golang.org/grpc
 go get -u google.golang.org/protobuf
-
+go get -u github.com/swaggo/swag/cmd/swag
+go get -u github.com/swaggo/gin-swagger
+go get -u github.com/swaggo/files
 
 
 kafka-topics --create --topic order.created --bootstrap-server localhost:9092 --partitions 3 --replication-factor 1
