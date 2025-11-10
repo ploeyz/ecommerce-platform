@@ -34,7 +34,7 @@ func NewProducer(cfg *config.Config) (*Producer, error) {
 		cfg:    cfg,
 	}
 
-	log.Println("✅ Kafka producer initialized successfully")
+	log.Println("Kafka producer initialized successfully")
 	return producer, nil
 }
 
@@ -65,7 +65,7 @@ func (p *Producer) PublishEvent(topic string, key string, data interface{}) erro
 		return fmt.Errorf("failed to write message: %w", err)
 	}
 
-	log.Printf("✅ Event published to topic [%s] with key [%s]", topic, key)
+	log.Printf("Event published to topic [%s] with key [%s]", topic, key)
 	return nil
 }
 
@@ -91,7 +91,7 @@ func (p *Producer) SendEvent(topic string, event interface{}) error {
 		return fmt.Errorf("failed to send message to kafka: %w", err)
 	}
 
-	log.Printf("✅ Event sent to topic=%s\n", topic)
+	log.Printf("Event sent to topic=%s\n", topic)
 	return nil
 }
 

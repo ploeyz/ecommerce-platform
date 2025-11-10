@@ -2,6 +2,8 @@ package handler
 
 import (
 	"context"
+	"fmt"
+
 	"github.com/ploezy/ecommerce-platform/product-service/internal/model"
 	"github.com/ploezy/ecommerce-platform/product-service/internal/service"
 	pb "github.com/ploezy/ecommerce-platform/product-service/proto"
@@ -181,4 +183,81 @@ func (h *ProductGRPCHandler) toProtoProduct(p *model.ProductResponse) *pb.Produc
 		CreatedAt:   p.CreatedAt,
 		UpdatedAt:   p.UpdatedAt,
 	}
+}
+
+// CheckStock checks if product has enough stock
+func (h *ProductGRPCHandler) CheckStock(ctx context.Context, req *pb.CheckStockRequest) (*pb.CheckStockResponse, error) {
+	// Get product from service
+	product, err := h.service.GetProductByID(ctx, uint(req.ProductId))
+	if err != nil {
+		return &pb.CheckStockResponse{
+			Available:    false,
+			CurrentStock: 0,
+			Message:      fmt.Sprintf("product not found: %v", err),
+		}, nil
+	}
+
+	// Check if enough stock is available
+	available := product.Stock >= int(req.Quantity)
+	message := "stock available"
+	if !available {
+		message = fmt.Sprintf("insufficient stock: requested %d, available %d", req.Quantity, product.Stock)
+	}
+
+	return &pb.CheckStockResponse{
+		Available:    available,
+		CurrentStock: int32(product.Stock),
+		Message:      message,
+	}, nil
+}
+
+// UpdateStock updates product stock
+func (h *ProductGRPCHandler) UpdateStock(ctx context.Context, req *pb.UpdateStockRequest) (*pb.UpdateStockResponse, error) {
+	// Get current product
+	product, err := h.service.GetProductByID(ctx, uint(req.ProductId))
+	if err != nil {
+		return &pb.UpdateStockResponse{
+			Success:  false,
+			NewStock: 0,
+			Message:  fmt.Sprintf("product not found: %v", err),
+		}, nil
+	}
+
+	// Calculate new stock
+	newStock := int(product.Stock) + int(req.Quantity)
+	
+	// Validate stock cannot be negative
+	if newStock < 0 {
+		return &pb.UpdateStockResponse{
+			Success:  false,
+			NewStock: int32(product.Stock),
+			Message:  fmt.Sprintf("insufficient stock: current %d, requested change %d", product.Stock, req.Quantity),
+		}, nil
+	}
+
+	// Create update request with new stock
+	updateReq := &model.UpdateProductRequest{
+		Name:        product.Name,
+		Description: product.Description,
+		Price:       product.Price,
+		Stock:       newStock,
+		Category:    product.Category,
+		Images:      product.Images,
+	}
+
+	// Update product
+	_, err = h.service.UpdateProduct(ctx, uint(req.ProductId), updateReq)
+	if err != nil {
+		return &pb.UpdateStockResponse{
+			Success:  false,
+			NewStock: int32(product.Stock),
+			Message:  fmt.Sprintf("failed to update stock: %v", err),
+		}, nil
+	}
+
+	return &pb.UpdateStockResponse{
+		Success:  true,
+		NewStock: int32(newStock),
+		Message:  "stock updated successfully",
+	}, nil
 }

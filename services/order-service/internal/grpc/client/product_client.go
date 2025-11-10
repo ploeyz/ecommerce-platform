@@ -43,7 +43,7 @@ func NewProductClient(address string) (*ProductClient, error) {
 		conn:   conn,
 	}
 
-	log.Printf("✅ Product Service gRPC client connected to %s", address)
+	log.Printf("Product Service gRPC client connected to %s", address)
 	return productClient, nil
 }
 
