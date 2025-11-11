@@ -31,7 +31,7 @@ const (
 // ProductService defines the gRPC service for product operations
 type ProductServiceClient interface {
 	// GetProduct retrieves product information by product ID
-	GetProduct(ctx context.Context, in *GetProductRequest, opts ...grpc.CallOption) (*GetProductResponse, error)
+	GetProduct(ctx context.Context, in *GetProductRequest, opts ...grpc.CallOption) (*ProductResponse, error)
 	// CheckStock checks if product has enough stock
 	CheckStock(ctx context.Context, in *CheckStockRequest, opts ...grpc.CallOption) (*CheckStockResponse, error)
 	// UpdateStock updates product stock (increase or decrease)
@@ -46,9 +46,9 @@ func NewProductServiceClient(cc grpc.ClientConnInterface) ProductServiceClient {
 	return &productServiceClient{cc}
 }
 
-func (c *productServiceClient) GetProduct(ctx context.Context, in *GetProductRequest, opts ...grpc.CallOption) (*GetProductResponse, error) {
+func (c *productServiceClient) GetProduct(ctx context.Context, in *GetProductRequest, opts ...grpc.CallOption) (*ProductResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetProductResponse)
+	out := new(ProductResponse)
 	err := c.cc.Invoke(ctx, ProductService_GetProduct_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -83,7 +83,7 @@ func (c *productServiceClient) UpdateStock(ctx context.Context, in *UpdateStockR
 // ProductService defines the gRPC service for product operations
 type ProductServiceServer interface {
 	// GetProduct retrieves product information by product ID
-	GetProduct(context.Context, *GetProductRequest) (*GetProductResponse, error)
+	GetProduct(context.Context, *GetProductRequest) (*ProductResponse, error)
 	// CheckStock checks if product has enough stock
 	CheckStock(context.Context, *CheckStockRequest) (*CheckStockResponse, error)
 	// UpdateStock updates product stock (increase or decrease)
@@ -98,7 +98,7 @@ type ProductServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedProductServiceServer struct{}
 
-func (UnimplementedProductServiceServer) GetProduct(context.Context, *GetProductRequest) (*GetProductResponse, error) {
+func (UnimplementedProductServiceServer) GetProduct(context.Context, *GetProductRequest) (*ProductResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProduct not implemented")
 }
 func (UnimplementedProductServiceServer) CheckStock(context.Context, *CheckStockRequest) (*CheckStockResponse, error) {

@@ -7,7 +7,7 @@ option go_package = "order-service/proto/product";
 // ProductService defines the gRPC service for product operations
 service ProductService {
   // GetProduct retrieves product information by product ID
-  rpc GetProduct(GetProductRequest) returns (GetProductResponse);
+  rpc GetProduct(GetProductRequest) returns (ProductResponse);
   
   // CheckStock checks if product has enough stock
   rpc CheckStock(CheckStockRequest) returns (CheckStockResponse);
@@ -16,11 +16,27 @@ service ProductService {
   rpc UpdateStock(UpdateStockRequest) returns (UpdateStockResponse);
 }
 
+message Product {
+  uint32 id = 1;
+  string name = 2;
+  string description = 3;
+  double price = 4;
+  int32 stock = 5;
+  string category = 6;
+  repeated string images = 7;
+  string created_at = 8;
+  string updated_at = 9;
+}
+
 // GetProductRequest is the request message for GetProduct
 message GetProductRequest {
   uint32 product_id = 1;
 }
 
+message ProductResponse
+{
+  Product product = 1;
+}
 // GetProductResponse is the response message for GetProduct
 message GetProductResponse {
   uint32 id = 1;

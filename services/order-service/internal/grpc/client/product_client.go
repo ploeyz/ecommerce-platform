@@ -53,7 +53,7 @@ func GetProductClient() *ProductClient {
 }
 
 // GetProduct retrieves product information by product ID
-func (c *ProductClient) GetProduct(ctx context.Context, productID uint32) (*pb.GetProductResponse, error) {
+func (c *ProductClient) GetProduct(ctx context.Context, productID uint32) (*pb.ProductResponse, error) {
 	req := &pb.GetProductRequest{
 		ProductId: productID,
 	}

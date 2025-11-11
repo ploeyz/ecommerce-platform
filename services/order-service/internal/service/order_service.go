@@ -205,7 +205,7 @@ func (s *orderService) CreateOrder(ctx context.Context, userID uint, req *models
         }
         
         // ใช้ Price ได้เลย
-        price := productResp.Price
+        price := productResp.Product.Price
         subtotal := price * float64(item.Quantity)
         totalAmount += subtotal
         
